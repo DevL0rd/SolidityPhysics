@@ -96,14 +96,10 @@ contract PhysicsEngine {
         friction: 0.5
     }
 
-    function applyGravity(uint256 id) public {
+    function applyGravity(uint256 id, uint256 delta) public {
         Object object = objects[id];
-        if (!object.isStatic) {
-            object.acc = vector2D({
-                x: object.acc.x + world.gravity.x,
-                y: object.acc.y + world.gravity.y
-            });
-        }
+        object.acc.y += world.gravity.y * delta;
+        object.acc.x += world.gravity.x * delta;
     }
 
     function updateObject(uint256 id, uint256 delta) public {
@@ -357,10 +353,10 @@ contract PhysicsEngine {
         }
     }
 
-    function tick() public {
+    function tick(uint256 delta) public {
         for (uint256 i = 0; i < objects.length; i++) {
-            applyGravity(i);
-            updateObject(i);
+            applyGravity(i, delta);
+            updateObject(i, delta);
             resolveCollisions(i);
         }
     }
@@ -388,10 +384,14 @@ contract PhysicsEngine {
                 y: 1
             })
         );
+        uint256 deltaTime = 0;
+        uint256 lastTime = now();
         //game loop
         while (true) {
-            tick();
+            deltaTime = now() - lastTime;
+            tick(deltaTime);
             sleep(1000 / 60);
+            lastTime = now();
         }
     }
 }
